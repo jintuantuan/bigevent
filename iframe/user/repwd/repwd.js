@@ -1,18 +1,19 @@
-// 1. form标签 - 绑定submit事件
-$(".layui-form").on("submit", e => {
+// form标签 - 绑定submit事件
+$('.layui-form').on('submit',(e)=>{
     e.preventDefault();
     let obj = {
-        oldPwd: md5($(".layui-form input[name=oldPwd]").val()),
-        newPwd: md5($(".layui-form input[name=newPwd]").val())
+        oldPwd: $('.layui-form input[name=oldPwd]').val(),
+        newPwd: $('.layui-form input[name=newPwd]').val(),
     }
-    let argStr = objToAS(obj);
-    changePassAPI(argStr, res => {
-        // 清除本地的token
-        // 强制跳转到登录页面 - 让用户重新登录
-        setTimeout(() => {
-            sessionStorage.removeItem("token");
-            window.parent.location.href = "/login.html";
-        }, 1500);
+
+    // 发送请求
+    postResetPwd(handleDataFormatForReq(obj), (res) => {
+        // console.log( res );
+        // 重置成功
+        // 移除token
+        window.localStorage.removeItem('token');
+        // 让父页面回到login.html
+        window.parent.location.href = '/login.html';
     })
 })
-// html+css+前端页面的一切功能(交互/验证)+调用接口请求-拿回来数据在回显页面
+// iframe使用过程中产生的父子页面的通信问题（传值）

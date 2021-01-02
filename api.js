@@ -9,11 +9,12 @@ axios.defaults.baseURL = `http://ajax.frontend.itheima.net`;
 axios.interceptors.request.use(function (config) {
     // 在发送请求之前做些什么
     console.log( '请求拦截器------', config ); // headers
-    // config.url
-    // if(如果拦截到的请求不是登录和注册){
-    const AUTH_TOKEN = window.localStorage.getItem('token');
-    config.headers['Authorization'] = AUTH_TOKEN;
-    // }
+    console.log( config.url );
+    // url如果以/api开头 不需要设置，反之/my开头需要headers
+    if(!config.url.startsWith('/api')){
+      const AUTH_TOKEN = window.localStorage.getItem('token');
+      config.headers['Authorization'] = AUTH_TOKEN;
+    }
     return config;
   }, function (error) {
     // 对请求错误做些什么
@@ -21,6 +22,7 @@ axios.interceptors.request.use(function (config) {
   });
 
 // 添加响应拦截器
+// then之前
 axios.interceptors.response.use(function (response) {
     console.log('res的响应拦截器进来了-----------',response);
     const { status, message } = response.data;
@@ -70,6 +72,28 @@ const getInfoUser = (cb) => {
   })
 }
 
+// 修改用户信息
+const postUpdateUserInfo = (data, cb) => {
+  axios.post(`/my/userinfo`, data).then((res) => {
+    cb(res);
+  })
+}
+
+// 重置密码
+const postResetPwd = (data, cb) => {
+  axios.post(`my/updatepwd`, data).then((res) => {
+    cb(res);
+  })
+}
+
+// 更换头像
+// "avatar=base64格式的字符串"
+const postAvatar = (data, cb) => {
+  axios.post(`/my/update/avatar`, data).then((res) => {
+    cb(res);
+  })
+}
+
 /* const getInfoUser = (cb) => {
   axios.get(`/my/userinfo`,{
     headers:{
@@ -84,9 +108,18 @@ const getInfoUser = (cb) => {
 // axios => 全局设置 或者 其他设置方法 设置headers
 
 // 持久化
+// 后端mysql
+// 后端文件读取
+// 前端模拟后端能力 indexDB => 事务
+// node => fs + 数据中间层
 
 
 // 网页销毁后 数据依然存在
 // 前端：浏览器里面 => WebStorage
 // localStorage
 // sessionStorage
+
+// 字符串新增的API
+// startsWith()
+// endsWith()
+// includes()

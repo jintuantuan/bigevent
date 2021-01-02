@@ -1,59 +1,77 @@
-// 0. 获取用户信息
-getUInfoAPI({}, res => {
-    let {user_pic} = res.data.data;
-    if (user_pic != null) { // 有头像
-        // 代码执行流程: 网页打开avatar, getUInfoAPI调用网络请求(异步), 主线程会接着往下走初始化裁剪插件
-        // 等网络请求回来, 拿到用户的头像, 再把头像的图片替换到cropper裁剪的插件里显示
-        cropper.replace(user_pic);
-    }
+// 更换头像的模块
+
+getInfoUser((res) => {
+    const { user_pic } = res.data.data;
+    if (user_pic) $('#image').attr('src', user_pic);
+    // img的src设置完毕后，处理cropper
+    handleCropper();
 })
 
-// 1. 集成裁剪插件
-const image = document.getElementById('image'); // 获取到要被添加裁剪插件的图片
-const cropper = new Cropper(image, {
-  aspectRatio: 1, // 横纵比例
-//   crop(event) { // 裁剪的事件
-//     console.log("=========");
-//     console.log(event.detail.x); // 裁剪插件左上角的x坐标
-//     console.log(event.detail.y); // ..y坐标
-//     console.log(event.detail.width); // 裁剪插件的宽高
-//     console.log(event.detail.height);
-//     console.log(event.detail.rotate); // 旋转
-//     console.log(event.detail.scaleX); // 缩放比例
-//     console.log(event.detail.scaleY);
-//   },
-  preview: $(".img-preview")
-});
-
-// 2. 偷天换日 - 点击按钮 -偷摸让别的按钮触发了点击事件
-
-$(".select").on("click", e => { // // input[type=file]标签的样式改不动, 所以我们用button[class=select]按钮来让用户点击
-    $("#file").click();  // JS代码来主动触发input[type=file]的点击事件 - 选择文件的窗口就出来
-})
-
-// 3. 选择文件窗口出现 - 选中文件点击打开, 会触发change事件
-$("#file").on("change", function(e){
-    var url = URL.createObjectURL(this.files[0]); // URL是window内置的对象, createObjectURL就是把blob对象(File的父类)转成url地址(浏览器本地的-跟后台无关)
-    cropper.replace(url); // 让cropper重新设置图片url地址以及重新构建cropper
-})
-
-// 4. 确定按钮 - 点击事件
-$(".sure").on("click", ev => {
-    var canvas = cropper.getCroppedCanvas({ // 利用cropper的方法, 把裁剪区域输出到一个canvas标签上 // width和height是canvas标签的大小
-        width: 100,
-        height: 100
-    });
-    var base64Str = canvas.toDataURL("image/jpeg"); // canvas图像 -> base64字符串
-    // image/jpeg 是对标签输出的base64字符串做出一个类型的标记
-    // 等一会儿把头像base64字符串, 放到img标签的src上, img标签根据类型就知道如何解析这串base64字符串
-
-    // 因为base64Str有一些特殊的符号, 前端要进行URL编码, 再传给后台(node+express)会进行URL解码
-    base64Str = encodeURIComponent(base64Str);
-    var argStr = "avatar=" + base64Str;
-    upHeadImgAPI(argStr, res => {
-        // 让父窗口的getInfo方法执行, 请求最新的头像更新父页面
-        window.parent.getInfo();
+const handleCropper = () => {
+    // 1.插件配置
+    let cropper = new Cropper($('#image')[0],{
+        aspectRatio: 1, // 裁剪图层的纵横比例
+        preview: $('.img-preview'), // 多看文档里每个属性的意思，一般都会有，实在没有自己写个插件
     })
-})
-// 图片: 本质上0和1的数字. 把0和1转成字符串表示 - (把图片的0和1数据, 按照加密方式, 转成base64字符串) base64的原理
-// canvas: 是html5新出的标签, 可以在它的身上任意的绘制任意的内容(包含图片)
+
+    // 2.上传按钮
+    $('.select').on('click',(e) => {
+        $('#file').click();
+    })
+    $('#file').on('change',(e)=>{
+        let file = e.target.files[0];
+        let url = URL.createObjectURL(file);
+        // 3.回显图片 => img#image
+        cropper.replace(url);
+    })
+
+    // 4.确定按钮=> 4.1发送请求  4.2更新页面
+    $('.sure').on('click', (e) => {
+        // 格式转换
+        let canvas = cropper.getCroppedCanvas({
+            // 利用cropper的方法，把剪裁区域输出到一个canvas标签上 // width和height是canvas标签的大小
+            width:100,
+            height:100,
+        })
+        // canvas图像 -> base64字符串
+        let base64Str = canvas.toDataURL('image/jpeg');
+        // 因为base64Str有一些特殊的符号，前端要进行URL编码，再传给后台(node+express)会进行URL解码
+        base64Str = encodeURIComponent(base64Str);
+        // 拼参数
+        let data = 'avatar=' + base64Str;
+        postAvatar(data, (res) => {
+            // 更新页面
+            window.parent.getUserInfo();
+        })
+    })
+}
+
+// 小技巧
+// 函数里面用img=>来源
+// 1.外部声明
+// 2.形参
+// 2.1默认形参
+// 2.2自己传
+
+// 小知识（了解）
+// blob => JS的一种数据类型 => 进制数据
+// file => 文件对象 => 图片 => 底层的数据就是blob
+// eg：file很大 => 1G => 请求一次 => 中断 => 请求超时
+// 解决：file => 文件分片 每一片很小blob
+// 10字节 请求10次 => 8次 Tag失败
+
+// 1.URL.createObjectURL(blob|file) => file=>url
+// 2.canvas => html5的新标签 画布
+//   <canvas id="canvas" width="500px" height="500px"></canvas>
+// js操作
+// 2.1根据画布生成画笔
+// 2.2确定起点
+// ===> 通过属性设置线宽 颜色 实线虚线 ......
+// 2.3确定终点
+// 2.4连线
+// ===> 关闭当前绘画环境
+
+// 3.base64 => 数据格式 => 高清图片
+// img的src值 可以是
+// 图片的路径（本地 网址）
+// base64格式字符串
