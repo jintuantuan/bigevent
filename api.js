@@ -94,6 +94,36 @@ const postAvatar = (data, cb) => {
   })
 }
 
+// 文章分类列表
+const getCateList = (cb) => {
+  axios.get(`/my/article/cates`).then((res) => {
+    cb(res);
+  })
+}
+
+// 新增文章分类
+const postCateAdd = (data, cb) => {
+  axios.post(`/my/article/addcates`, data).then((res) => {
+    cb(res);
+  })
+}
+
+// 删除文章分类
+// Id => 文章1的id =>
+const getCateDeleById = (Id, cb) => {
+  // 接口文档中url的参数：id =>
+  axios.get(`/my/article/deletecate/${Id}`).then((res) => {
+    cb(res);
+  })
+}
+
+// 编辑文章分类
+const postCateEdit = (data, cb) => {
+  axios.post(`/my/article/updatecate`, data).then((res) => {
+    cb(res);
+  })
+}
+
 /* const getInfoUser = (cb) => {
   axios.get(`/my/userinfo`,{
     headers:{
