@@ -1,9 +1,9 @@
 // 整个项目请求方法所在的文件
 // axios相关 req res => 给外部提供数据
 
-axios.defaults.baseURL = `http://ajax.frontend.itheima.net`;
+axios.defaults.baseURL = `http://api-breakingnews-web.itheima.net`;
 
-// const { layer } = window.layui;
+const { layer } = window.layui;
 
 // 添加请求拦截器
 axios.interceptors.request.use(function (config) {
@@ -120,6 +120,59 @@ const getCateDeleById = (Id, cb) => {
 // 编辑文章分类
 const postCateEdit = (data, cb) => {
   axios.post(`/my/article/updatecate`, data).then((res) => {
+    cb(res);
+  })
+}
+
+// 发布新文章
+// title是string文章标题
+// cate_id是int所属分类Id
+// content 是 string 文章内容
+// cover_img 是blob二进制 文章封面
+// state是string状态 可选值为：已发布、草稿
+// 注意 请求体的格式是 formData类型 => 形参data对应的实参必须是formData类型
+const postArticleAdd = (data, cb) => {
+  axios.post(`/my/article/add`, data).then((res) => {
+    cb(res);
+  })
+}
+
+// 文章列表
+// pagenum	是	int	页码值   1
+// pagesize	是	int	每页显示多少条数据    2
+// cate_id	否	string	文章分类的 Id
+// state	否	string	文章的状态，可选值有：已发布、草稿
+const getArticles = (data, cb) => {
+  axios.get(`/my/article/list`, {
+    params:data,
+  }).then((res) =>{
+    cb(res);
+  })
+}
+
+// 根据Id获取文章详情
+const getArticleDetailById = (Id, cb) => {
+  axios.get(`/my/article/${Id}`).then((res) =>{
+    cb(res);
+  })
+}
+
+// 根据Id 修改文章
+// formData
+// Id	是	int	文章 Id
+// title	是	string	文章标题
+// cate_id	是	int	所属分类 Id
+// content	是	string	文章内容
+// cover_img	是	blob二进制	文章封面
+// state	是	string	状态，可选值为：已发布、草稿
+const postArticleEditById = (data, cb) => {
+  axios.post(`/my/article/edit`,data).then((res) => {
+    cb(res);
+  })
+}
+
+const getArticleDelById = (Id, cb) => {
+  axios.get(`/my/article/delete/${Id}`).then((res) => {
     cb(res);
   })
 }

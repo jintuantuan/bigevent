@@ -92,7 +92,7 @@ $('.add').on('click', (e) => {
 $('.layui-table tbody').on('click', '.delete', (e) => {
   // console.dir( e.target );
   // 确认框
-  layer.confirm('is not?', { icon: 3, title: '提示' }, function (index){
+  layer.confirm('确认删除?', { icon: 3, title: '提示' }, function (index){
     // 移除自己
     // 发送请求
     // JQ的元素.attr('myid')
@@ -149,7 +149,7 @@ $('.layui-table tbody').on('click', '.edit', function (e){
       // $('.add-form input[name=alias]').val(aliasDOM)
       // $('.add-form input[name=Id]').val(IdDOM)
       // 优化（写法2）from.val('form的lay-filter的值'，可选{属性：值}) => 可赋值可取值
-      FormData.val('edit', {
+      form.val('edit', {
         name: name,
         // ES6对象新语法 => 如果key和value的名字一样 => 可以简化为下面写法
         alias,
